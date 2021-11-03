@@ -54,4 +54,17 @@ def resize_list_of_arrays(array_list: list[numpy.ndarray]) -> list[numpy.ndarray
     first_item = out_lst[0]
     return [arr for arr in out_lst if arr.shape == first_item.shape]
 
- 
+
+def combine_array_list(array_list: list[numpy.ndarray], method: str = "sum") -> numpy.ndarray:
+    """
+    :param array_list:
+    :param method:
+    :return:
+    """
+    if method == 'sum':
+        return sum(array_list)
+    if method == 'avg':
+        return sum(array_list) / len(array_list)
+    if method == 'dist':
+        return sum([arr * 1 / len(array_list) * i for i, arr in enumerate(array_list)])
+    # TODO add "this didnt work" error
