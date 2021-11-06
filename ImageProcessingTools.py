@@ -26,27 +26,11 @@ def multi_pass(file_in: str, file_out: str, rgb: bool, window: list[int], combin
     IO.export_image(Path(file_out), data)
 
 
-if __name__ == '__main__':
-    # argparse info:
-    # https://docs.python.org/3/library/argparse.html
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-f", "--file", dest="filename", help="input file name", required=True)
-    parser.add_argument("-o", "--output", dest="output", help="output file name", required=True)
 
-    parser.add_argument("-w", "--window", dest="window", help="window size, int or list[int]", default=3)
 
-    # used in Contrast.combine_array_list
-    parser.add_argument("-combine", "--combiner_options", dest="combine_options",
-                        help="method used to combine multi-pass images", choices=["sum", "avg", "dist"], default="sum")
-
-    # additional options
-    parser.add_argument("-rgb", "--rgb", dest="rgb", help="Use Greyscale",
-                        action=argparse.BooleanOptionalAction, default=True)
-    # no idea if this is required or for testing yet
-    args = parser.parse_args('-f TestFiles/7nshji.jpg -o TestFiles/output/7nshji.jpg -w 3,5,7'.split())
-    print(args)
+def commandline_mode(args:argparse.Namespace):
     window = list_from_input(args.window)
-    if isinstance(args.window, int):
+    if isinstance(window, int):
         single_pass(file_in=args.filename,
                     file_out=args.output,
                     rgb=args.rgb,
@@ -57,4 +41,54 @@ if __name__ == '__main__':
                    rgb=args.rgb,
                    window=window,
                    combine_method=args.combine_options)
-int()
+
+def interactive_mode():
+    filename = input("Target input file:")
+    output = input("Target output file:")
+    window = list_from_input(input("Window size, int or list[int]"))
+    sub_args = input("Additional arguments, --no-rgb")
+    rgb = "--no-rgb" not in sub_args
+    if isinstance(window, int):
+        single_pass(file_in=filename,
+                    file_out=output,
+                    rgb=rgb,
+                    window=window)
+    else:
+        combine_options = input("method used to combine multi-pass images: 'sum', 'avg', 'dist'")
+        multi_pass(file_in=filename,
+                   file_out=output,
+                   rgb=rgb,
+                   window=window,
+                   combine_method=combine_options)
+
+
+
+
+if __name__ == '__main__':
+    # argparse info:
+    # https://docs.python.org/3/library/argparse.html
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument("-i" , "--interactive",dest="interactive", help="Interactive mode",
+                        action=argparse.BooleanOptionalAction, default=False)
+
+    parser.add_argument("-f", "--file", dest="filename", help="input file name")
+    parser.add_argument("-o", "--output", dest="output", help="output file name")
+
+    parser.add_argument("-w", "--window", dest="window", help="window size, int or list[int]", default=3)
+
+    # used in Contrast.combine_array_list
+    parser.add_argument("-combine", "--combiner_options", dest="combine_options",
+                        help="method used to combine multi-pass images", choices=["sum", "avg", "dist"], default="sum")
+
+    # additional options
+    parser.add_argument("-rgb", "--rgb", dest="rgb", help="Use RGB image functions",
+                        action=argparse.BooleanOptionalAction, default=True)
+
+    args = parser.parse_args()
+    print(args)
+
+    if args.interactive:
+        interactive_mode()
+    else:
+        commandline_mode(args)
