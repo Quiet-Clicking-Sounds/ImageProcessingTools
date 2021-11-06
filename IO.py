@@ -19,13 +19,14 @@ def get_list_of_files(directory: pathlib.Path) -> list[pathlib.Path]:
 test_file_list: list[pathlib.Path] = get_list_of_files(pathlib.Path('TestFiles'))
 
 
-def load_image(file: pathlib.Path, RGB=True) -> numpy.ndarray:
+def load_image(file: pathlib.Path, rgb=True) -> numpy.ndarray:
     """ get image from disk using cv2 """
-    if RGB:
+    if rgb:
         return cv2.imread(file.as_posix(), cv2.IMREAD_COLOR)
     return cv2.imread(file.as_posix(), cv2.IMREAD_GRAYSCALE)
 
-def export_to_image(url: pathlib.Path, data: numpy.ndarray):
+
+def export_image(url: pathlib.Path, data: numpy.ndarray):
     """
     Export image to disk using cv2 imwrite
     :param url: url to place the file, including extension "here/this.jpg"
@@ -35,7 +36,7 @@ def export_to_image(url: pathlib.Path, data: numpy.ndarray):
     cv2.imwrite(url.as_posix(), data)
 
 
-def load_video(file:pathlib.Path) -> numpy.ndarray:
+def load_video(file: pathlib.Path) -> numpy.ndarray:
     try:
         capture = cv2.VideoCapture(file.__str__())
         frame_count = int(capture.get(cv2.CAP_PROP_FRAME_COUNT))
@@ -56,7 +57,8 @@ def load_video(file:pathlib.Path) -> numpy.ndarray:
         print(f'FileNotFoundError: \n\t\t{file}  \n{fnf}')
         exit(1)
 
-def export_video(url: pathlib.Path, data: numpy.ndarray, fps=30, view=False):
+
+def export_video(url: pathlib.Path, data: numpy.ndarray, fps=30):
     url.parent.mkdir(parents=True, exist_ok=True)
     if url.suffix != '.avi':
         print(f"Fixing suffix without error: from {url.suffix}")
@@ -70,12 +72,6 @@ def export_video(url: pathlib.Path, data: numpy.ndarray, fps=30, view=False):
                               frameSize=(data.shape[2], data.shape[1]))
         for frame in data:
             out.write(frame)
-
-            if view:
-                cv2.imshow('frame', frame)
-                if cv2.waitKey(1) & 0xFF == ord('q'):
-                    break
-                time.sleep(1 / fps)
 
         out.release()
 
