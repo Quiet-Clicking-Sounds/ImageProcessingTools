@@ -6,7 +6,7 @@ import cv2
 import numpy
 
 
-def apply_rgb(function: Callable, array: numpy.ndarray, *args, **kwargs):
+def apply(function: Callable, array: numpy.ndarray, *args, **kwargs):
     """
     Apply a fuinction to an RGB image, uses cv2 split and merge, everything except function and array is
     passed to the function as an argument
@@ -15,8 +15,9 @@ def apply_rgb(function: Callable, array: numpy.ndarray, *args, **kwargs):
     :param kwargs: args for the function
     :return:
     """
-    return cv2.merge([function(a, *args, **kwargs) for a in cv2.split(array)])
-
+    if len(array.shape) == 3:
+        return cv2.merge([function(a, *args, **kwargs) for a in cv2.split(array)])
+    return function(array, *args, **kwargs)
 
 def moving_stdev(array: numpy.ndarray,
                  window: int,
@@ -58,7 +59,7 @@ def resize_list_of_arrays(array_list: list[numpy.ndarray]) -> list[numpy.ndarray
 def combine_array_list(array_list: list[numpy.ndarray], method: str = "sum") -> numpy.ndarray:
     """
     :param array_list:
-    :param method:
+    :param method: ['sum','avg','dist']
     :return:
     """
     if method == 'sum':
@@ -67,4 +68,5 @@ def combine_array_list(array_list: list[numpy.ndarray], method: str = "sum") -> 
         return sum(array_list) / len(array_list)
     if method == 'dist':
         return sum([arr * 1 / len(array_list) * i for i, arr in enumerate(array_list)])
-    # TODO add "this didnt work" error
+    else:
+        raise ValueError(f"method argument invalid: {method}")
