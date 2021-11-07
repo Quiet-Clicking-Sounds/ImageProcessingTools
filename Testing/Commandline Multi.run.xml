@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Commandline Multi" type="PythonConfigurationType" factoryName="Python">
+  <configuration default="false" name="Commandline Multi" type="PythonConfigurationType" factoryName="Python" singleton="false">
     <output_file path="$PROJECT_DIR$/Testing" is_save="true" />
     <module name="ImageProcessingTools" />
     <option name="INTERPRETER_OPTIONS" value="" />
@@ -13,7 +13,7 @@
     <option name="ADD_CONTENT_ROOTS" value="true" />
     <option name="ADD_SOURCE_ROOTS" value="true" />
     <option name="SCRIPT_NAME" value="$PROJECT_DIR$/ImageProcessingTools.py" />
-    <option name="PARAMETERS" value="-f TestFiles/7nshji.jpg -o TestFiles/output/7nshji_single_3_5_7.jpg -w 3,5,7" />
+    <option name="PARAMETERS" value="-f TestFiles/aranprime-Wa6KJdX2Sy8-unsplash.jpg -o TestFiles/Multi/aranprime-Wa6KJdX2Sy8-unsplash.jpg -w 3,5,7,13,19 -combine sum" />
     <option name="SHOW_COMMAND_LINE" value="false" />
     <option name="EMULATE_TERMINAL" value="false" />
     <option name="MODULE_MODE" value="false" />

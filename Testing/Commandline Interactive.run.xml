@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Commandline Interactive" type="PythonConfigurationType" factoryName="Python">
+  <configuration default="false" name="Commandline Interactive" type="PythonConfigurationType" factoryName="Python" singleton="false">
     <output_file path="$PROJECT_DIR$/Testing" is_save="true" />
     <module name="ImageProcessingTools" />
     <option name="INTERPRETER_OPTIONS" value="" />
