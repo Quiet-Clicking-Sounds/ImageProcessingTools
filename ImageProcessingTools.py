@@ -44,7 +44,6 @@ def single_pass(file_in: str, file_out: str, rgb: bool, window: int, return_imag
     :param return_image: ignore file_out and return the image instead
     :return:
     """
-    print(f"{'-' * 20}\nBeginning single_pass operation")
     data = IO.load_image(assign_path(file_in, True), rgb=rgb)
     data = Contrast.apply(Contrast.moving_stdev, data, window=window)
     if return_image: return data
@@ -63,7 +62,6 @@ def multi_pass(file_in: str, file_out: str, rgb: bool, window: list[int], combin
     :param return_image: ignore file_out and return the image instead
     :return:
     """
-    print(f"{'-' * 20}\nBeginning multi_pass operation")
     data = IO.load_image(assign_path(file_in, True), rgb=rgb)
     data = [Contrast.apply(Contrast.moving_stdev, data, window=w) for w in window]
     data = Contrast.resize_list_of_arrays(data)
@@ -79,6 +77,7 @@ def commandline_mode(cl_args: argparse.Namespace):
     :return:
     """
     window = list_from_input(cl_args.window)
+    print(f"{'-' * 20}\nBeginning operation")
     if isinstance(window, int):
         single_pass(file_in=cl_args.filename,
                     file_out=cl_args.output,
@@ -97,12 +96,14 @@ def interactive_mode():
     interactive mode for user input
     :return:
     """
-    filename = input("Target input file:")
+    filename = input("Target input file: ")
     while True:
-        output = input("Target output file:")
-        window = list_from_input(input("Window size, int or list[int]"))
-        sub_args = input("Additional arguments, --no-rgb")
+        output = input("Target output file: ")
+        window = list_from_input(input("Window size, int or list[int]: "))
+        sub_args = input("Additional arguments, --no-rgb: ")
         rgb = "--no-rgb" not in sub_args
+
+        print(f"{'-' * 20}\nBeginning operation")
         if isinstance(window, int):
             single_pass(file_in=filename,
                         file_out=output,
@@ -110,14 +111,14 @@ def interactive_mode():
                         window=window)
         else:
             combine_options = input(
-                "method used to combine multi-pass images: 'sum', 'avg', 'dist' - prepend '-' to invert list")
+                "method used to combine multi-pass images: 'sum', 'avg', 'dist' - prepend '-' to invert list: ")
             inverse = False
             multi_pass(file_in=filename,
                        file_out=output,
                        rgb=rgb,
                        window=window,
                        combine_method=combine_options)
-        if input("run again on same file? y/n") != "y":
+        if input("run again on same file? y/n: ") != "y":
             break
 
 
@@ -135,23 +136,23 @@ def interactive_complex_mode():
     This mode gives additional methods but is less user friendly.
     :return:
     """
-    filename = input("Target input file:")
-    output = input("Target output file:")
-    sub_args = input("Additional arguments, --no-rgb")
+    filename = input("Target input file: ")
+    output = input("Target output file: ")
+    sub_args = input("Additional arguments, --no-rgb: ")
     rgb = "--no-rgb" not in sub_args
 
     window_list = []
-    print(f"{'-' * 20}\n Window syntax: [int] or [list[int] combine] e.g. '5' or '3,5,7 dist'")
+    print(f"{'-' * 20}\nWindow syntax: [int] or [list[int] combine] e.g. '5' or '3,5,7 dist'")
     print(f"combine options: {Contrast.combine_method_options(True)} \nUse 'q' or 'quit' to exit window inputs\n")
     while True:
-        current = input(f"Window {len(window_list)}")
+        current = input(f"Window {len(window_list)}: ")
         if current.lower() in ['q', 'quit']:
             break
         else:
             window_list.append(current)
 
     final_combination_method = get_first_valid_combination_type(input(f"Final combination method: "))
-
+    print(f"{'-' * 20}\nBeginning operations")
     image_list = []
     for window in window_list:
         try:
@@ -172,7 +173,7 @@ def interactive_complex_mode():
                            window=window_sizes,
                            combine_method=combine_opt,
                            return_image=True))
-
+    image_list = Contrast.resize_list_of_arrays(image_list)
     image = Contrast.combine_array_list(image_list, final_combination_method)
     IO.export_image(assign_path(output), image)
 
