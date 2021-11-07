@@ -12,12 +12,13 @@ def apply(function: Callable, array: numpy.ndarray, *args, **kwargs):
     passed to the function as an argument
     :param function: function to apply over each colour of the array
     :param array: image array
-    :param kwargs: args for the function
+    :param kwargs: cl_args for the function
     :return:
     """
     if len(array.shape) == 3:
         return cv2.merge([function(a, *args, **kwargs) for a in cv2.split(array)])
     return function(array, *args, **kwargs)
+
 
 def moving_stdev(array: numpy.ndarray,
                  window: int,
@@ -56,12 +57,30 @@ def resize_list_of_arrays(array_list: list[numpy.ndarray]) -> list[numpy.ndarray
     return [arr for arr in out_lst if arr.shape == first_item.shape]
 
 
+def combine_method_options(as_str=False) -> str or list[str]:
+    """ Function for use in print statements
+    :return:
+    """
+    part = ["sum", "avg"]
+    reversible_part = ["dist"]
+    part.extend(reversible_part)
+    part.extend([f'-{s}' for s in reversible_part])
+    if as_str:
+        return ', '.join(part)
+    return part
+
+
 def combine_array_list(array_list: list[numpy.ndarray], method: str = "sum") -> numpy.ndarray:
     """
     :param array_list:
     :param method: ['sum','avg','dist']
+    :param inverse: reverse list direction
     :return:
     """
+    if method[0] == '-':
+        method = method[1:]
+        array_list = array_list[::-1]
+
     if method == 'sum':
         return sum(array_list)
     if method == 'avg':
