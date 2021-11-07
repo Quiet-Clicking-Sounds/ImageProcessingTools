@@ -3,16 +3,19 @@
 <h2> Usage Examples</h2>
 
 <h3> Single pass via commandline</h3>
-<code>ImageProcessingTools.py -f TestFiles/aranprime-Wa6KJdX2Sy8-unsplash.jpg -o TestFiles/Multi/aranprime-Wa6KJdX2Sy8-unsplash.jpg -w 5</code>
+
+`ImageProcessingTools.py -f TestFiles/aranprime-Wa6KJdX2Sy8-unsplash.jpg -o TestFiles/Multi/aranprime-Wa6KJdX2Sy8-unsplash.jpg -w 5`
 
 <h3> Multi pass via commandline</h3>
-<code>ImageProcessingTools.py -f TestFiles/aranprime-Wa6KJdX2Sy8-unsplash.jpg -o TestFiles/Multi/aranprime-Wa6KJdX2Sy8-unsplash.jpg -w 3,5,7,13,19 -combine sum</code>
+
+`ImageProcessingTools.py -f TestFiles/aranprime-Wa6KJdX2Sy8-unsplash.jpg -o TestFiles/Multi/aranprime-Wa6KJdX2Sy8-unsplash.jpg -w 3,5,7,13,19 -combine sum`
 
 
 
 <h3> Interactive</h3>
 
-<code>ImageProcessingTools.py -i\
+```
+ImageProcessingTools.py -i\
 Target input file: TestFiles/aranprime-Wa6KJdX2Sy8-unsplash.jpg\
 Target output file: TestFiles/INTERACTIVE/aranprime-Wa6KJdX2Sy8-unsplash.jpg\
 Window size, int or list[int]: 3,5,7,13,19\
@@ -22,12 +25,13 @@ Beginning operation\
 method used to combine multi-pass images: 'sum', 'avg', 'dist' - prepend '-' to invert list: -dist\
 Operation Complete\
 --------------------\
-run again on same file? y/n: n</code>
- 
+run again on same file? y/n: n\
+```
 
 <h3>Interactive Complex</h3>
 
-<code>ImageProcessingTools.py -ic\
+```
+ImageProcessingTools.py -ic\
 Target input file: TestFiles/graham-mansfield-TTnHA_4UzmA-unsplash.jpg\
 Target output file: TestFiles/COMEPLEX/graham-mansfield-TTnHA_4UzmA-unsplash.jpg\
 Additional arguments, --no-rgb: \
@@ -42,7 +46,8 @@ Window 2: 3,5,7 avg\
 Window 3: 3,5 avg\
 Window 4: 25\
 Window 5: q\
-Final combination method: sum </code>
+`Final combination method: sum 
+```
 
 
 
