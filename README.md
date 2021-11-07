@@ -20,6 +20,10 @@
 * [TestFiles/aranprime-Wa6KJdX2Sy8-unsplash.jpg](TestFiles/aranprime-Wa6KJdX2Sy8-unsplash.jpg)  Photo by <a href="https://unsplash.com/@aranprime?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">aranprime</a> on <a href="https://unsplash.com/?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Unsplash</a>
 * [TestFiles/cory-bouthillette-nop6Tqlt-DE-unsplash.jpg](TestFiles/cory-bouthillette-nop6Tqlt-DE-unsplash.jpg) Photo by <a href="https://unsplash.com/@coryb?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Cory Bouthillette</a> on <a href="https://unsplash.com/?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Unsplash</a>
 
+## Install
+
+Install requirements with pip \
+`python -m pip install -r requirements.txt`
 
 
 ## Usage Examples
