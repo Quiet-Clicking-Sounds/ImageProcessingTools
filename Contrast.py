@@ -50,11 +50,17 @@ def resize_list_of_arrays(array_list: list[numpy.ndarray]) -> list[numpy.ndarray
     out_lst = []
     for arr in array_list:
         a_x, a_y = arr.shape[0], arr.shape[1]
+        if min_x == a_x and min_y and a_y: #fix for if an array is of correct size..
+            out_lst.append(arr)
+            continue
         dx1, dx2 = math.floor((a_x - min_x) / 2), math.ceil((a_x - min_x) / 2)
         dy1, dy2 = math.floor((a_y - min_y) / 2), math.ceil((a_y - min_y) / 2)
         out_lst.append(arr[dx1: -dx2, dy1: -dy2])
     first_item = out_lst[0]
-    return [arr for arr in out_lst if arr.shape == first_item.shape]
+    comepleted_list = [arr for arr in out_lst if arr.shape == first_item.shape]
+    if len(array_list) != len(comepleted_list):
+        raise AssertionError("Input and output arrays are of different size")
+    return comepleted_list
 
 
 def combine_method_options(as_str=False) -> str or list[str]:
