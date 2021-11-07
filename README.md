@@ -1,4 +1,4 @@
-#Image Processing Tools:
+# Image Processing Tools:
 
 
 <table>
@@ -8,12 +8,10 @@
 </tr>
 <tr>
 <td>
-
-<img src="https://github.com/Quiet-Clicking-Sounds/ImageProcessingTools/blob/main//TestFiles/cory-bouthillette-nop6Tqlt-DE-unsplash.jpg" width="50%">
+<img src="https://github.com/Quiet-Clicking-Sounds/ImageProcessingTools/blob/main//TestFiles/cory-bouthillette-nop6Tqlt-DE-unsplash.jpg">
 </td>
 <td>
-
-<img src="https://github.com/Quiet-Clicking-Sounds/ImageProcessingTools/blob/main//TestFiles/INTERACTIVE/cory-bouthillette-nop6Tqlt-DE-unsplash.jpg" width="50%">
+<img src="https://github.com/Quiet-Clicking-Sounds/ImageProcessingTools/blob/main//TestFiles/INTERACTIVE/cory-bouthillette-nop6Tqlt-DE-unsplash.jpg">
 </td>
 </tr>
 </table>
