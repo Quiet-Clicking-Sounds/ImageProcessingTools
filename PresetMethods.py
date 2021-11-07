@@ -1,13 +1,11 @@
-import IO
+import pathlib
+from collections.abc import Callable
+from functools import partial
+
 import Contrast
+import IO
 
 use_multi_core_processing = False
-"""
-Named methods: 
-for multi part sub items use:    tuple[list,str] 
-for single part sub items use:   int
-final item must be:              str 
-"""
 named_methods = {
     'high_contrast': (
         ([3, 5, 7, 9, 11, 13, 15], 'dist'), ([3, 5, 7, 9, 11, 13, 15], '-dist'), ([3, 5, 7], 'avg'), ([3, 5], 'avg'),
@@ -78,3 +76,28 @@ def quick_pool(function: Callable, data_list: list) -> list:
         return p.map(function, data_list)
 
 
+if __name__ == '__main__':
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-d", "--directory", dest="directory", help="directory of files to apply methods to")
+    parser.add_argument("-f", "--function", dest="function",
+                        help="functions to apply over each file 'add area' use ',' as separator or 'all'",
+                        default='all')
+    parser.add_argument("-asf", "--allow_sub_folders", dest="sub_folder",
+                        help="run function on all sub-folders of the given directory",
+                        action=argparse.BooleanOptionalAction, default=False)
+    parser.add_argument("-m", "--multicore", dest="multicore", help="use multiple CPU cores",
+                        action=argparse.BooleanOptionalAction, default=False)
+    args = parser.parse_args()
+    print(args)
+    use_multi_core_processing = args.multicore
+    if args.function.strip().lower() == 'all':
+        for name in named_methods:
+            apply_in_folder(folder=args.directory, function=apply_to_file, method=named_methods[name],
+                            allow_sub_folders=args.sub_folder, sub_folder_name=name)
+    else:
+        func_list = [a for a in args.function.split(',') if a in named_methods]
+        for name in func_list:
+            apply_in_folder(folder=args.directory, function=apply_to_file, method=named_methods[name],
+                            allow_sub_folders=args.sub_folder, sub_folder_name=name)
