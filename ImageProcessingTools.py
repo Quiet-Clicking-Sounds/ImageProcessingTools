@@ -1,23 +1,7 @@
 import argparse
-from pathlib import Path
 
 import Contrast
 import IO
-
-
-def assign_path(path_string: str, assert_file: bool = False, assert_extension: str or None = None):
-    """
-    :param path_string:
-    :param assert_file: raise ValueError if the path does not a have a file extension
-    :param assert_extension: return ValueError if the path does not have the given file extension eg: ".jpg"
-    :return:
-    """
-    file = Path(path_string)
-    if assert_file and file.suffix == "":
-        raise ValueError(f"Extension not found")
-    if assert_extension and file.suffix != assert_extension:
-        raise ValueError(f"Extension does not match. got {file.suffix} expected {assert_extension}")
-    return file
 
 
 def list_from_input(in_var: str) -> list[int] or int:
@@ -44,10 +28,10 @@ def single_pass(file_in: str, file_out: str, rgb: bool, window: int, return_imag
     :param return_image: ignore file_out and return the image instead
     :return:
     """
-    data = IO.load_image(assign_path(file_in, True), rgb=rgb)
+    data = IO.load_image(IO.assign_path(file_in, True), rgb=rgb)
     data = Contrast.apply(Contrast.moving_stdev, data, window=window)
     if return_image: return data
-    IO.export_image(assign_path(file_out, True), data)
+    IO.export_image(IO.assign_path(file_out, True), data)
     print(f"Operation Complete\n{'-' * 20}")
 
 
@@ -62,12 +46,12 @@ def multi_pass(file_in: str, file_out: str, rgb: bool, window: list[int], combin
     :param return_image: ignore file_out and return the image instead
     :return:
     """
-    data = IO.load_image(assign_path(file_in, True), rgb=rgb)
+    data = IO.load_image(IO.assign_path(file_in, True), rgb=rgb)
     data = [Contrast.apply(Contrast.moving_stdev, data, window=w) for w in window]
     data = Contrast.resize_list_of_arrays(data)
     data = Contrast.combine_array_list(data, combine_method)
     if return_image: return data
-    IO.export_image(assign_path(file_out, True), data)
+    IO.export_image(IO.assign_path(file_out, True), data)
     print(f"Operation Complete\n{'-' * 20}")
 
 
@@ -175,7 +159,7 @@ def interactive_complex_mode():
                            return_image=True))
     image_list = Contrast.resize_list_of_arrays(image_list)
     image = Contrast.combine_array_list(image_list, final_combination_method)
-    IO.export_image(assign_path(output), image)
+    IO.export_image(IO.assign_path(output), image)
 
 
 if __name__ == '__main__':
