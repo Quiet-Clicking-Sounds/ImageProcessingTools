@@ -1,4 +1,5 @@
 import pathlib
+from pathlib import Path
 
 import cv2
 import numpy
@@ -78,3 +79,18 @@ def export_video(url: pathlib.Path, data: numpy.ndarray, fps=30):
     except FileNotFoundError as fnf:
         print(f'FileNotFoundError: \n\t\t{url}  \n{fnf}')
         exit(1)
+
+
+def assign_path(path_string: str, assert_file: bool = False, assert_extension: str or None = None):
+    """
+    :param path_string:
+    :param assert_file: raise ValueError if the path does not a have a file extension
+    :param assert_extension: return ValueError if the path does not have the given file extension eg: ".jpg"
+    :return:
+    """
+    file = Path(path_string)
+    if assert_file and file.suffix == "":
+        raise ValueError(f"Extension not found")
+    if assert_extension and file.suffix != assert_extension:
+        raise ValueError(f"Extension does not match. got {file.suffix} expected {assert_extension}")
+    return file
