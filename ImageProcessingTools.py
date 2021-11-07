@@ -121,12 +121,13 @@ def interactive_mode():
             break
 
 
-def get_first_valid_combination_type(string:str) ->str:
+def get_first_valid_combination_type(string: str) -> str:
     """
     :param string: input string
     :return: First occurrence of a combination method option
     """
     return [c for c in Contrast.combine_method_options() if c in string][0]
+
 
 def interactive_complex_mode():
     """
@@ -175,6 +176,7 @@ def interactive_complex_mode():
     image = Contrast.combine_array_list(image_list, final_combination_method)
     IO.export_image(assign_path(output), image)
 
+
 if __name__ == '__main__':
     # argparse info:
     # https://docs.python.org/3/library/argparse.html
@@ -206,7 +208,7 @@ if __name__ == '__main__':
 
     if args.interactive:
         interactive_mode()
-    if args.interactive_complex:
+    elif args.interactive_complex:
         interactive_complex_mode()
     else:
         commandline_mode(args)
