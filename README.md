@@ -1,6 +1,5 @@
 # Image Processing Tools:
 
-
 <table>
 <tr>
 <td>Base image</td>
@@ -16,9 +15,12 @@
 </tr>
 </table>
 
+## Test images
 
+* [TestFiles/aranprime-Wa6KJdX2Sy8-unsplash.jpg](TestFiles/aranprime-Wa6KJdX2Sy8-unsplash.jpg)  Photo by <a href="https://unsplash.com/@aranprime?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">aranprime</a> on <a href="https://unsplash.com/?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Unsplash</a>
+* [TestFiles/cory-bouthillette-nop6Tqlt-DE-unsplash.jpg](TestFiles/cory-bouthillette-nop6Tqlt-DE-unsplash.jpg) Photo by <a href="https://unsplash.com/@coryb?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Cory Bouthillette</a> on <a href="https://unsplash.com/?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Unsplash</a>
 
-
+---
 
 ## Usage Examples
 
@@ -48,7 +50,8 @@ Operation Complete
 run again on same file? y/n: n
 ```
 
-###Interactive Complex
+### Interactive Complex
+
 
 ```
 ImageProcessingTools.py -ic
@@ -69,14 +72,6 @@ Window 5: q
 Final combination method: sum 
 ```
 
-
-
-<hr> 
-<h2>Test images</h2>
-
-
-* [TestFiles/aranprime-Wa6KJdX2Sy8-unsplash.jpg](TestFiles/aranprime-Wa6KJdX2Sy8-unsplash.jpg)  Photo by <a href="https://unsplash.com/@aranprime?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">aranprime</a> on <a href="https://unsplash.com/?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Unsplash</a>
-* [TestFiles/cory-bouthillette-nop6Tqlt-DE-unsplash.jpg](TestFiles/cory-bouthillette-nop6Tqlt-DE-unsplash.jpg) Photo by <a href="https://unsplash.com/@coryb?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Cory Bouthillette</a> on <a href="https://unsplash.com/?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Unsplash</a>
 
 
 
