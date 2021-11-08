@@ -79,8 +79,7 @@ def combine_method_options(as_str=False) -> str or list[str]:
 def combine_array_list(array_list: list[numpy.ndarray], method: str = "sum") -> numpy.ndarray:
     """
     :param array_list:
-    :param method: ['sum','avg','dist']
-    :param inverse: reverse list direction
+    :param method: ['sum','avg','dist'] prepend '-' to reverse list before application
     :return:
     """
     if method[0] == '-':
@@ -92,6 +91,9 @@ def combine_array_list(array_list: list[numpy.ndarray], method: str = "sum") -> 
     if method == 'avg':
         return sum(array_list) / len(array_list)
     if method == 'dist':
-        return sum([arr * 1 / len(array_list) * i for i, arr in enumerate(array_list)])
+        """ dist outputs: array_list = [5,10,25] len(array_list = 3  
+            ( 5*1/3*1 + 10*1/3*2 + 25*1/3*3 ) / 3 
+        """
+        return sum([arr * 1 / len(array_list) * i+1 for i, arr in enumerate(array_list)])
     else:
         raise ValueError(f"method argument invalid: {method}")
