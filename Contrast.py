@@ -92,7 +92,9 @@ def combine_array_list(array_list: list[numpy.ndarray], method: str = "sum") -> 
         return sum(array_list) / len(array_list)
     if method == 'dist':
         """ dist outputs: array_list = [5,10,25] len(array_list = 3  
-            ( 5*1/3*1 + 10*1/3*2 + 25*1/3*3 ) / 3 
+            ( 5*1/3*1 + 10*1/3*2 + 25*1/3*3 ) / 3 = 11.111 
+            dist will output a combination closer to the final inputs given
+            this can be called on a list of integers or floats for testing purposes
         """
         return sum([arr * 1 / len(array_list) * i+1 for i, arr in enumerate(array_list)])
     else:
