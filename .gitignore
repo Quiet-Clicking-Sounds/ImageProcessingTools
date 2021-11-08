@@ -112,5 +112,8 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
-/TEST/
+
+# automatic commandline methods folder
 /Testing/
+
+# .idea
