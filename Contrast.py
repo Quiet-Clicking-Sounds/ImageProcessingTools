@@ -2,8 +2,27 @@ import math
 from collections.abc import Callable
 
 import bottleneck
-import cv2
 import numpy
+from cv2 import cv2
+
+
+class ImageCache:
+    def __init__(self, image: numpy.ndarray):
+        self.image: numpy.ndarray = image
+
+        self.moving_stdev = moving_stdev
+        if len(self.image.shape) == 3:
+            self.moving_stdev = rgb_moving_stdev
+
+        # dictionary used to cache image versions
+        self.dev_dict: dict[tuple[int, int, int], numpy.ndarray] = {}
+
+    def __call__(self, window: int, min_count: int = 1, axis: int = -1):
+        method_id = window, min_count, axis
+        if method_id in self.dev_dict:
+            return self.dev_dict[method_id]
+        self.dev_dict[method_id] = moving_stdev(self.image, window, min_count, axis)
+        return self.dev_dict[method_id]
 
 
 def apply(function: Callable, array: numpy.ndarray, *args, **kwargs):
@@ -20,10 +39,7 @@ def apply(function: Callable, array: numpy.ndarray, *args, **kwargs):
     return function(array, *args, **kwargs)
 
 
-def moving_stdev(array: numpy.ndarray,
-                 window: int,
-                 min_count: int = 1,
-                 axis: int = -1) -> numpy.ndarray:
+def moving_stdev(array: numpy.ndarray, window: int, min_count: int = 1, axis: int = -1) -> numpy.ndarray:
     """
     Quickly apply a moving standard deviation calc over an array
     :param array: input array to apply over
@@ -39,6 +55,13 @@ def moving_stdev(array: numpy.ndarray,
                                )[:-window + 1, window - 1:]
 
 
+def rgb_moving_stdev(array: numpy.ndarray, window: int, min_count: int = 1, axis: int = -1) -> numpy.ndarray:
+    """
+    apply moving stdev over an rgb array
+    """
+    return cv2.merge([moving_stdev(a, window, min_count, axis) for a in cv2.split(array)])
+
+
 def resize_list_of_arrays(array_list: list[numpy.ndarray]) -> list[numpy.ndarray]:
     """ resize all arrays given  to the size of the smallest array
     will attempt to remove the same amount from each side of the array
@@ -50,7 +73,7 @@ def resize_list_of_arrays(array_list: list[numpy.ndarray]) -> list[numpy.ndarray
     out_lst = []
     for arr in array_list:
         a_x, a_y = arr.shape[0], arr.shape[1]
-        if min_x == a_x and min_y and a_y: #fix for if an array is of correct size..
+        if min_x == a_x and min_y and a_y:  # fix for if an array is of correct size..
             out_lst.append(arr)
             continue
         dx1, dx2 = math.floor((a_x - min_x) / 2), math.ceil((a_x - min_x) / 2)
@@ -96,6 +119,6 @@ def combine_array_list(array_list: list[numpy.ndarray], method: str = "sum") -> 
             dist will output a combination closer to the final inputs given
             this can be called on a list of integers or floats for testing purposes
         """
-        return sum([arr * 1 / len(array_list) * i+1 for i, arr in enumerate(array_list)])
+        return sum([arr * 1 / len(array_list) * i + 1 for i, arr in enumerate(array_list)])
     else:
         raise ValueError(f"method argument invalid: {method}")
