@@ -49,7 +49,7 @@ def apply_in_folder(folder: str, function: Callable, allow_sub_folders=False, **
             function(file, **kwargs)
 
 
-def apply_to_file(file: pathlib.Path, method: list, sub_folder_name: str):
+def apply_to_file0(file: pathlib.Path, method: list, sub_folder_name: str):
     image = IO.load_image(file)
     data_list = []
 
@@ -60,6 +60,26 @@ def apply_to_file(file: pathlib.Path, method: list, sub_folder_name: str):
             data_list.append(Contrast.combine_array_list(data, parse[1]))
         elif isinstance(parse, int):
             data_list.append(Contrast.apply(Contrast.moving_stdev, image, window=parse))
+
+    data = Contrast.resize_list_of_arrays(data_list)
+    output_image = Contrast.combine_array_list(data, method[-1])
+
+    file_output = file.parent / sub_folder_name / file.parts[-1]
+    IO.export_image(file_output, output_image)
+
+
+def apply_to_file(file: pathlib.Path, method: list, sub_folder_name: str):
+    image = IO.load_image(file)
+    image = Contrast.ImageCache(image)
+    data_list = []
+
+    for parse in method:
+        if isinstance(parse, tuple):
+            data = [image(w) for w in parse[0]]
+            data = Contrast.resize_list_of_arrays(data)
+            data_list.append(Contrast.combine_array_list(data, parse[1]))
+        elif isinstance(parse, int):
+            data_list.append(image(window=parse))
 
     data = Contrast.resize_list_of_arrays(data_list)
     output_image = Contrast.combine_array_list(data, method[-1])
