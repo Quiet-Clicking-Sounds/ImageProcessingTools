@@ -37,50 +37,6 @@ def export_image(url: pathlib.Path, data: numpy.ndarray):
     cv2.imwrite(url.as_posix(), data)
 
 
-def load_video(file: pathlib.Path) -> numpy.ndarray:
-    try:
-        capture = cv2.VideoCapture(file.__str__())
-        frame_count = int(capture.get(cv2.CAP_PROP_FRAME_COUNT))
-        frame_width = int(capture.get(cv2.CAP_PROP_FRAME_WIDTH))
-        frame_height = int(capture.get(cv2.CAP_PROP_FRAME_HEIGHT))
-
-        buffer = numpy.empty((frame_count, frame_height, frame_width, 3))
-
-        frame = 0
-        return_val = True
-        while frame < frame_count and return_val:
-            return_val, buffer[frame] = capture.read()
-            frame += 1
-        capture.release()
-        print(f'Image: {buffer.shape}')
-        return buffer
-    except FileNotFoundError as fnf:
-        print(f'FileNotFoundError: \n\t\t{file}  \n{fnf}')
-        exit(1)
-
-
-def export_video(url: pathlib.Path, data: numpy.ndarray, fps=30):
-    url.parent.mkdir(parents=True, exist_ok=True)
-    if url.suffix != '.avi':
-        print(f"Fixing suffix without error: from {url.suffix}")
-        url = url.with_suffix('.avi')
-
-    try:
-        data = data.astype('uint8')
-        out = cv2.VideoWriter(filename=url.__str__(),
-                              fourcc=cv2.VideoWriter_fourcc(*'MJPG'),
-                              fps=fps,
-                              frameSize=(data.shape[2], data.shape[1]))
-        for frame in data:
-            out.write(frame)
-
-        out.release()
-
-    except FileNotFoundError as fnf:
-        print(f'FileNotFoundError: \n\t\t{url}  \n{fnf}')
-        exit(1)
-
-
 def assign_path(path_string: str, assert_file: bool = False, assert_extension: str or None = None):
     """
     :param path_string:
