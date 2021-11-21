@@ -1,86 +1,73 @@
 import pathlib
-from collections.abc import Callable
 from functools import partial
+from typing import Union
 
 import Contrast
 import IO
+import NamedMethods
 
 use_multi_core_processing = False
-named_methods = {
-    'cont_8': (
-        ([7, 9, 11, 13, ], 'dist'), ([7, 9, 11, 13], '-dist'), ([5, 7, 9], 'avg'), ([3, 5, 7], 'avg'),
-        'dist'),
-    'cont_13': (
-        ([7, 9, 11, 13, ], 'dist'), ([7, 9, 11, 13], '-dist'), ([5, 7, 9], 'avg'), ([3, 5, 7], 'avg'),
-        '-dist'),
-    'cont_24': (
-        ([3, 5, 7, 9, 11, 13], 'dist'), ([3, 5, 7, 9, 11], 'dist'), ([3, 5, 7], 'dist'), 15, 25,
-        '-dist'),
-    'cont_48': (
-        ([3, 5, 7, 9, 11, 13, 15], 'dist'), ([3, 5, 7, 9, 11, 13, 15], '-dist'), ([3, 5, 7], 'avg'), ([3, 5], 'avg'),
-        25,
-        'sum'),
-    'add_area': (
-        ([13, 19, 21], 'dist'), ([7, 9, 11], 'dist'), ([5, 7, 9], 'dist'), ([3, 5, 7], 'dist'),
-        'dist'),
-}
 
 
-def apply_in_folder(folder: str, function: Callable, allow_sub_folders=False, **kwargs):
+def apply_in_folder(folder: str, method_names: list[str], allow_sub_folders=False, use_multi_core_processing=False,
+                    **kwargs):
     def get_list_of_files(directory: pathlib.Path):
         """ return a list of files within a directory
         :param directory:
         :return:
         """
-        file_list = []
+        found_files = []
         for item in directory.iterdir():
             if item.is_file():
-                file_list.append(item)
+                found_files.append(item)
             elif item.is_dir() and allow_sub_folders:
-                file_list.extend(get_list_of_files(item))
-        return file_list
+                found_files.extend(get_list_of_files(item))
+        return found_files
 
     file_list = get_list_of_files(IO.assign_path(folder))
+
     if use_multi_core_processing:
-        function = partial(function, **kwargs)
-        quick_pool(function, file_list)
-    else:
-        for file in file_list:
-            function(file, **kwargs)
+        try:
+            import MulticoreProcessing
+            print("MultiCore Method")
+            function = partial(apply_methods, method_names=method_names)
+            MulticoreProcessing.quick_pool(function, file_list)
+            return None
+        except ModuleNotFoundError as module_error:
+            print("Multicore failed, module not found\n", module_error, "\n\n fail-over to slow method")
+
+    print('Slow Method')
+    for file in file_list:
+        apply_methods(file, method_names=method_names)
 
 
-def apply_to_file(file: pathlib.Path, method: list, sub_folder_name: str):
-    image = IO.load_image(file)
-    image = Contrast.ImageCache(image)
-    data_list = []
-
-    for parse in method:
-        if isinstance(parse, tuple):
-            data = [image(w) for w in parse[0]]
-            data = Contrast.resize_list_of_arrays(data)
-            data_list.append(Contrast.combine_array_list(data, parse[1]))
-        elif isinstance(parse, int):
-            data_list.append(image(window=parse))
-
-    data = Contrast.resize_list_of_arrays(data_list)
-    output_image = Contrast.combine_array_list(data, method[-1])
-
-    file_output = file.parent / sub_folder_name / file.parts[-1]
-    IO.export_image(file_output, output_image)
+def sub_method(image: Contrast.ImageCache, method: Union[tuple, int, str], data=None, **kwargs):
+    if data is None:
+        data = []
+    if isinstance(method, tuple):
+        for me in method:
+            data.append(sub_method(image, me, data, **kwargs))
+    if isinstance(method, int):
+        return image(method, **kwargs)
+    if isinstance(method, str):
+        data = Contrast.combine_array_list(data, method=method)
 
 
-# --------------------------------------------------------------------------------------------------------------
-# ---------------------------Multi Processing Function ---------------------------------------------------------
-# --------------------------------------------------------------------------------------------------------------
-from multiprocessing import Pool
-from os import cpu_count
+def apply_methods(file: pathlib.Path, method_names: list[str]):
+    image = Contrast.ImageCache(file)
+    for method_name in method_names:
+        data_list = []  # reset var
+        method = NamedMethods.named_methods[method_name]
+        image_args = {x: x in method for x in NamedMethods.image_args}
+        for parse in method:
+            if isinstance(parse, tuple):
+                data = [image(window=w, **image_args) for w in parse[0]]
+                data_list.append(Contrast.combine_array_list(data, parse[1]))
+            elif isinstance(parse, int):
+                data_list.append(image(window=parse, **image_args))
 
-core_count = max(cpu_count() - 2, 1)
-
-
-def quick_pool(function: Callable, data_list: list) -> list:
-    with Pool(core_count) as p:
-        return p.map(function, data_list)
+        output_image = Contrast.combine_array_list(data_list, method[-1])
+        IO.export_image(url=image.output_file(method_name), data=output_image)
 
 
 if __name__ == '__main__':
@@ -99,12 +86,13 @@ if __name__ == '__main__':
     args = parser.parse_args()
     print(args)
     use_multi_core_processing = args.multicore
-    if args.function.strip().lower() == 'all':
-        for name in named_methods:
-            apply_in_folder(folder=args.directory, function=apply_to_file, method=named_methods[name],
-                            allow_sub_folders=args.sub_folder, sub_folder_name=name)
-    else:
-        func_list = [a for a in args.function.split(',') if a in named_methods]
-        for name in func_list:
-            apply_in_folder(folder=args.directory, function=apply_to_file, method=named_methods[name],
-                            allow_sub_folders=args.sub_folder, sub_folder_name=name)
+
+    method_dict = list(NamedMethods.named_methods.keys())
+    if args.function.strip().lower() != 'all':
+        method_args = args.function.split(',')
+        method_dict = [a for a in NamedMethods.named_methods if a in method_args]
+
+    apply_in_folder(folder=args.directory,
+                    method_names=method_dict,
+                    allow_sub_folders=args.sub_folder,
+                    use_multi_core_processing=args.multicore)
