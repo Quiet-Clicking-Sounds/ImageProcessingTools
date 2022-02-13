@@ -9,8 +9,7 @@ from cv2 import cv2
 
 import IO
 import MulticoreProcessing
-import manipulation
-from image_process.manipulation import moving_stdev_wrapped, moving_stdev
+from image_process import manipulation
 
 
 class ImageCache:
@@ -29,7 +28,7 @@ class ImageCache:
         self.file_name = file_name
         self.modify_filename = modify_filename
         print(f'Input:  {hash(self)}    Base    {self.file_name}')
-        self.moving_stdev = moving_stdev
+        self.moving_stdev = manipulation.moving_stdev
 
         if scale_factor != 1:
             self.scale_image(scale_factor)
@@ -41,7 +40,7 @@ class ImageCache:
         method_id = window, min_count
         if method_id in self.dev_dict:
             return self.dev_dict[method_id]
-        stdev: numpy.ndarray = moving_stdev(self.image, window, min_count)
+        stdev: numpy.ndarray = manipulation.moving_stdev(self.image, window, min_count)
         stdev = numpy.multiply(stdev.astype(numpy.uint8), 2)
         self.dev_dict[method_id] = stdev
         return self.dev_dict[method_id]
@@ -63,7 +62,7 @@ class ImageCache:
 
     def calc_division_list(self, divisions: list[int]):
         divisions = list(set(divisions))
-        function = partial(moving_stdev_wrapped, array=self.image)
+        function = partial(manipulation.moving_stdev_wrapped, array=self.image)
         devs = MulticoreProcessing.quick_pool(function=function, data_list=divisions)
         for div, ret in zip(divisions, devs):
             self.dev_dict[(div, 1)] = ret
@@ -95,7 +94,7 @@ def get_method_counts(method):
 
 class _CallableMulti:
     method: tuple[DefinedTypes]
-    opt: typing.Optional[typing.Any]
+    opt: typing.Optional[typing.Any] = None
     _func: typing.Callable[[list[numpy.ndarray], typing.Any], numpy.ndarray]
 
     def children(self) -> typing.Iterable:
@@ -136,7 +135,7 @@ class Power(_CallableMulti):
 
 class _CallableSingle:
     method: DefinedTypes
-    opt: typing.Optional[typing.Any]
+    opt: typing.Optional[typing.Any] = None
     _func: typing.Callable[[numpy.ndarray, typing.Any], numpy.ndarray]
 
     def children(self) -> typing.Iterable:
