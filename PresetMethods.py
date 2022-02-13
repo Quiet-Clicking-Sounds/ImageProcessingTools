@@ -1,16 +1,16 @@
 import pathlib
 from functools import partial
-from typing import Union
 
-import Contrast
 import IO
-import NamedMethods
+import MulticoreProcessing
+import image_process
+from _predefined_methods import named_methods
 
 use_multi_core_processing = False
 
 
-def apply_in_folder(folder: str, method_names: list[str], allow_sub_folders=False, use_multi_core_processing=False,
-                    **kwargs):
+def apply_in_folder(folder: str, method_names: list[str], allow_sub_folders=False, use_multi_core=False,
+                    scale_factor=1, modify_filename=False):
     def get_list_of_files(directory: pathlib.Path):
         """ return a list of files within a directory
         :param directory:
@@ -26,48 +26,38 @@ def apply_in_folder(folder: str, method_names: list[str], allow_sub_folders=Fals
 
     file_list = get_list_of_files(IO.assign_path(folder))
 
-    if use_multi_core_processing:
-        try:
-            import MulticoreProcessing
-            print("MultiCore Method")
-            function = partial(apply_methods, method_names=method_names)
-            MulticoreProcessing.quick_pool(function, file_list)
-            return None
-        except ModuleNotFoundError as module_error:
-            print("Multicore failed, module not found\n", module_error, "\n\n fail-over to slow method")
-
-    print('Slow Method')
+    if use_multi_core:
+        print("MultiCore Method")
+    else:
+        print('Slow Method')
     for file in file_list:
-        apply_methods(file, method_names=method_names)
+        apply_methods(file, method_names=method_names, scale_factor=scale_factor, modify_filename=modify_filename,
+                      multicore=use_multi_core)
 
 
-def sub_method(image: Contrast.ImageCache, method: Union[tuple, int, str], data=None, **kwargs):
-    if data is None:
-        data = []
-    if isinstance(method, tuple):
-        for me in method:
-            data.append(sub_method(image, me, data, **kwargs))
-    if isinstance(method, int):
-        return image(method, **kwargs)
-    if isinstance(method, str):
-        data = Contrast.combine_array_list(data, method=method)
+def _apply_method_(method_name, image=None):
+    method = named_methods[method_name]
+    output_image = image_process.apply_method(image, method)
+    IO.export_image(url=image.output_file(method_name), data=output_image)
 
 
-def apply_methods(file: pathlib.Path, method_names: list[str]):
-    image = Contrast.ImageCache(file)
+def apply_methods(file: pathlib.Path, method_names: list[str], scale_factor: float, modify_filename: bool,
+                  multicore: bool = False):
+    try:
+        image = image_process.ImageCache(file, scale_factor=scale_factor, modify_filename=modify_filename)
+    except FileExistsError as _:
+        print(f"File Exists {file}")
+        return
+    if multicore:
+        methods = [named_methods[m] for m in method_names]
+
+        image.calc_division_list(image_process.get_method_counts(methods))
+        if image.image_byte_size() < 100e6:
+            MulticoreProcessing.quick_pool(partial(_apply_method_, image=image), method_names)
+            return
+
     for method_name in method_names:
-        data_list = []  # reset var
-        method = NamedMethods.named_methods[method_name]
-        image_args = {x: x in method for x in NamedMethods.image_args}
-        for parse in method:
-            if isinstance(parse, tuple):
-                data = [image(window=w, **image_args) for w in parse[0]]
-                data_list.append(Contrast.combine_array_list(data, parse[1]))
-            elif isinstance(parse, int):
-                data_list.append(image(window=parse, **image_args))
-
-        output_image = Contrast.combine_array_list(data_list, method[-1])
-        IO.export_image(url=image.output_file(method_name), data=output_image)
+        _apply_method_(method_name, image)
 
 
 if __name__ == '__main__':
@@ -78,21 +68,29 @@ if __name__ == '__main__':
     parser.add_argument("-f", "--function", dest="function",
                         help="functions to apply over each file 'add area' use ',' as separator or 'all'",
                         default='all')
-    parser.add_argument("-asf", "--allow_sub_folders", dest="sub_folder",
+    parser.add_argument("--allow_sub_folders", dest="sub_folder",
                         help="run function on all sub-folders of the given directory",
                         action=argparse.BooleanOptionalAction, default=False)
     parser.add_argument("-m", "--multicore", dest="multicore", help="use multiple CPU cores",
                         action=argparse.BooleanOptionalAction, default=False)
+    parser.add_argument("-s", "--scale", dest="scale_factor", type=float,
+                        help="Scale factor to use, 2 for double size, 0.5 for half size, etc", default=1.0)
+    parser.add_argument("-t", "--timer", dest="timer", help="print timer stats -- Not usable with multicore --",
+                        action=argparse.BooleanOptionalAction, default=False)
+    parser.add_argument("-fn", "--filename", dest="filename", help="modify filename for output file instead of folder",
+                        action=argparse.BooleanOptionalAction, default=False)
     args = parser.parse_args()
     print(args)
     use_multi_core_processing = args.multicore
+    method_dict = list(named_methods.keys())
 
-    method_dict = list(NamedMethods.named_methods.keys())
     if args.function.strip().lower() != 'all':
         method_args = args.function.split(',')
-        method_dict = [a for a in NamedMethods.named_methods if a in method_args]
+        method_dict = [a for a in named_methods if a in method_args]
 
     apply_in_folder(folder=args.directory,
                     method_names=method_dict,
                     allow_sub_folders=args.sub_folder,
-                    use_multi_core_processing=args.multicore)
+                    use_multi_core=args.multicore,
+                    scale_factor=args.scale_factor,
+                    modify_filename=args.filename)
