@@ -79,10 +79,18 @@ if __name__ == '__main__':
                         action=argparse.BooleanOptionalAction, default=False)
     parser.add_argument("-fn", "--filename", dest="filename", help="modify filename for output file instead of folder",
                         action=argparse.BooleanOptionalAction, default=False)
+    parser.add_argument("-i", "--interactive", dest="interactive",
+                        help="open the GUI - this overrides all other arguments.",
+                        action=argparse.BooleanOptionalAction, default=False)
     args = parser.parse_args()
     print(args)
     use_multi_core_processing = args.multicore
     method_dict = list(named_methods.keys())
+    if args.interactive:
+        import interface
+
+        interface.mainloop()
+        exit(1)
 
     if args.function.strip().lower() != 'all':
         method_args = args.function.split(',')
