@@ -89,7 +89,7 @@ def combine_avg(array_list: list[numpy.ndarray], *_) -> numpy.ndarray:
 
 
 @wrapper_f32_u8
-def combine_dist(array_list: list[numpy.ndarray], *, /, reverse=False) -> numpy.ndarray:
+def combine_dist(array_list: list[numpy.ndarray], reverse=False) -> numpy.ndarray:
     """
     dist outputs: array_list = [5,10,25] len(array_list) = 3
     ( 5*1/3*1 + 10*1/3*2 + 25*1/3*3 ) / 3 = 11.111
@@ -110,7 +110,7 @@ def combine_dist(array_list: list[numpy.ndarray], *, /, reverse=False) -> numpy.
 
 
 @wrapper_f32_u8
-def combine_pow(array_list: list[numpy.ndarray], *, /, reverse=False) -> numpy.ndarray:
+def combine_pow(array_list: list[numpy.ndarray], reverse=False) -> numpy.ndarray:
     if len(array_list) == 1:
         return array_list[0]
     elif len(array_list) == 0:
