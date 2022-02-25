@@ -5,7 +5,12 @@ from image_process.process_handling import (
     MaxContrast,
     RollContrast,
     Sharpen,
+    MixedHSV,
+    MixedBGR,
     HSV,
+    InsertChannelHSV,
+    InsertChannelBGR,
+    AsInput,
 )
 from image_process.process_handling import DefinedTypes
 
@@ -22,14 +27,14 @@ MaxContrast
 RollContrast
 Sharpen
 
-base method, applies a moving standard deviation calculation over windows of the target image: 
-integers in range 2 - min(image width, image height)
-HSV - the base method applied to a hsv encoded image
+base method, applies a moving standard deviation calculation over windows of the target img: 
+integers in range 2 - min(img width, img height)
+HSV - the base method applied to a hsv encoded img
 
 
 Extensions:
 Method.hsv() 
-    convert image to hsv, then return it to bgr 
+    convert img to hsv, then return it to bgr 
 Method.bgr()
     opposite of the above, used to undo .hsv() as all images default to the bgr colour space 
 
@@ -38,6 +43,27 @@ Method.hsv_partial(h_=True, s_=True, v_=True)
 Method.bgr_partial(b_=True, g_=True, r_=True)
 
 """
+
+possible_methods: dict[str, DefinedTypes] = {
+    "hsv_tff": HSV(4, True, False, False),
+    "Sharpen_tff": Sharpen(4).hsv_partial(True, False, False),
+    "MaxContrast_tff": MaxContrast(4).hsv_partial(True, False, False),
+    "RollContrast_tff": RollContrast(4).hsv_partial(True, False, False),
+    "Sharpen_ftt": Sharpen(4).hsv_partial(False, True, True),
+    "MaxContrast_ftt": MaxContrast(4).hsv_partial(False, True, True),
+    "RollContrast_ftt": RollContrast(4).hsv_partial(False, True, True),
+
+    "MixedHSV_4_6_8": MixedHSV(4, 6, 8),
+    "MixedBGR_4_6_8": MixedBGR(4, 6, 8),
+    "InsertChannelHSV": InsertChannelHSV(4, None, MixedHSV(0, 4, 0), AsInput()),
+    "InsertChannelBGR": InsertChannelBGR(4, None, 6, AsInput()),
+    "Average": Average(2, 4, 6),
+    "Distribute": Distribute(2, 4, 6),
+    "Power": Power(2, 4, 6),
+    "MaxContrast": MaxContrast(2, ),
+    "RollContrast": RollContrast(2, invert=True),
+    "Sharpen": Sharpen(2, strength=0.3),
+}
 
 named_methods: dict[str, DefinedTypes] = {
     "cont_24": Distribute(
@@ -83,37 +109,5 @@ named_methods: dict[str, DefinedTypes] = {
         HSV(8),
         HSV(9),
         HSV(10),
-    ),
-}
-a = named_methods
-_named_methods: dict[str, DefinedTypes] = {
-    "hsv_2": HSV(2),
-    "hsv_ftt_2": HSV(2, False, True, True),
-    "hsv_tft_2": HSV(2, True, False, True),
-    "hsv_ttf_2": HSV(2, True, True, False),
-    "Sharpen_ftt_2": Sharpen(2).hsv_partial(False, True, True),
-    "Sharpen_tft_2": Sharpen(2).hsv_partial(True, False, True),
-    "Sharpen_ttf_2": Sharpen(2).hsv_partial(True, True, False),
-    "MaxContrast_ftt_2": MaxContrast(2).hsv_partial(False, True, True),
-    "MaxContrast_tft_2": MaxContrast(2).hsv_partial(True, False, True),
-    "MaxContrast_ttf_2": MaxContrast(2).hsv_partial(True, True, False),
-    "RollContrast_ftt_2": RollContrast(2).hsv_partial(False, True, True),
-    "RollContrast_tft_2": RollContrast(2).hsv_partial(True, False, True),
-    "RollContrast_ttf_2": RollContrast(2).hsv_partial(True, True, False),
-    "hsv_tff_2": HSV(2, True, False, False),
-    "Sharpen_tff_2": Sharpen(2).hsv_partial(True, False, False),
-    "MaxContrast_tff_2": MaxContrast(2).hsv_partial(True, False, False),
-    "RollContrast_tff_2": RollContrast(2).hsv_partial(True, False, False),
-    "hsv_ftf_2": HSV(2, False, True, False),
-    "Sharpen_ftf_2": Sharpen(2).hsv_partial(False, True, False),
-    "MaxContrast_ftf_2": MaxContrast(2).hsv_partial(False, True, False),
-    "RollContrast_ftf_2": RollContrast(2).hsv_partial(False, True, False),
-    "hsv_fft_2": HSV(2, False, False, True),
-    "Sharpen_fft_2": Sharpen(2).hsv_partial(False, False, True),
-    "MaxContrast_fft_2": MaxContrast(2).hsv_partial(False, False, True),
-    "RollContrast_fft_2": RollContrast(2).hsv_partial(False, False, True),
-    "Average_hsv_hsvtft_2": Average(
-        HSV(2),
-        HSV(2, True, False, True),
     ),
 }

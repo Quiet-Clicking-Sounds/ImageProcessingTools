@@ -20,14 +20,14 @@ class ImageCache:
     def __init__(
             self, file_name: pathlib.Path, scale_factor: float = 1, modify_filename=False
     ):
-        # Load image on init
+        # Load img on init
         try:
             self.image: numpy.ndarray = IO.load_image(file_name)
         except AttributeError as ae:
             if isinstance(file_name, numpy.ndarray):
                 self.image: numpy.ndarray = file_name
                 file_name = (
-                    "FILE GIVEN AS numpy.ndarray UPDATE FILENAME\nuse image.filename"
+                    "FILE GIVEN AS numpy.ndarray UPDATE FILENAME\nuse img.filename"
                 )
             else:
                 raise ae
@@ -39,7 +39,7 @@ class ImageCache:
         if scale_factor != 1:
             self.scale_image(scale_factor)
 
-        # dictionary used to cache image versions '' Tuple[window, min_count]
+        # dictionary used to cache img versions '' Tuple[window, min_count]
         self.dev_dict: dict[tuple[int, int], numpy.ndarray] = {}
 
     def __call__(self, window: int, min_count: int = 1):
@@ -128,7 +128,7 @@ class _Callable:
         convert to hsv colour space before applying parent function\n
         `h_, s_, v_` each bool represents a colour segment, \n
         True values will have the parent method applied to them \n
-        False values will be placed back into the outputted array before returning \n
+        False values will be placed back into the outputted img before returning \n
         EG: apply a sharpening method over only the saturation value: `Sharpen.hsv_partial(False, True, False)`
 
         :return: Self
@@ -142,7 +142,7 @@ class _Callable:
         convert to bgr colour space before applying parent function \n
         `b_, g_, r_` each bool represents a colour segment, \n
         True values will have the parent method applied to them \n
-        False values will be placed back into the outputted array before returning \n
+        False values will be placed back into the outputted img before returning \n
         EG: apply a sharpening method over only the blue and red values: `Sharpen.bgr_partial(False, True, False)`
 
         :return: Self
@@ -234,6 +234,11 @@ class Distribute(_CallableMulti):
 
     def __init__(self, *method: DefinedTypes, reverse: bool = False):
         """
+        Distribute will take a list of image methods and return a weighted average of them,
+        the last item will have the strongest impact on the output image
+
+        pseudo code: sum([ im/len(method)*n for n, im in enumerate(method)]
+
         :param reverse: reverse the list of items before application
         """
         self.method = method
@@ -247,11 +252,86 @@ class Power(_CallableMulti):
 
     def __init__(self, *method: DefinedTypes, reverse: bool = False):
         """
+        Power will take a list of image methods and return a weighted average of them,
+        the final item will have the strongest impact on the output image
+
+        pseudo code: sum([ im ** n+1 for n, im in enumerate(method)]
+
         :param reverse: reverse the list of items before application
         """
         self.method = method
         self.opt = reverse
         self._func = manipulation.combine_pow
+
+
+class InsertChannelHSV(_CallableMulti):
+    hsv_partial = None
+    bgr_partial = None
+
+    def __init__(
+            self,
+            base_: DefinedTypes,
+            /,
+            h: _Opt_Type = None,
+            s: _Opt_Type = None,
+            v: _Opt_Type = None,
+    ):
+        """
+        override channels of an img with the same channel from another image
+
+        :param base_: method to use as the base of this image
+        :param h: method use to override the hue channel of the base image,
+            None ignores this channel using the base image instead
+        :param s: method use to override the saturation channel of the base image,
+            None ignores this channel using the base image instead
+        :param v: method use to override the value channel of the base image,
+            None ignores this channel using the base image instead
+        """
+        self.base = base_
+        self.new_channels = (h, s, v)
+
+    def apply(self, image_cache: ImageCache) -> numpy.ndarray:
+        base_ = apply_method(image_cache, self.base)
+        new_channels = [
+            apply_method(image_cache, method) if method is not None else None
+            for method in self.new_channels
+        ]
+        return manipulation.insert_channel(base_, new_channels, _hsv_=self._hsv_)
+
+
+class InsertChannelBGR(_CallableMulti):
+    hsv_partial = None
+    bgr_partial = None
+
+    def __init__(
+            self,
+            base_: DefinedTypes,
+            /,
+            b: _Opt_Type = None,
+            g: _Opt_Type = None,
+            r: _Opt_Type = None,
+    ):
+        """
+        override channels of an img with the same channel from another image
+
+        :param base_: method to use as the base of this image
+        :param b: method use to override the blue channel of the base image,
+            None ignores this channel using the base image instead
+        :param g: method use to override the green channel of the base image,
+            None ignores this channel using the base image instead
+        :param r: method use to override the red channel of the base image,
+            None ignores this channel using the base image instead
+        """
+        self.base = base_
+        self.new_channels = (b, g, r)
+
+    def apply(self, image_cache: ImageCache) -> numpy.ndarray:
+        base_ = apply_method(image_cache, self.base)
+        new_channels = [
+            apply_method(image_cache, method) if method is not None else None
+            for method in self.new_channels
+        ]
+        return manipulation.insert_channel(base_, new_channels, _bgr_=self._bgr_)
 
 
 # --- SINGLE ---
@@ -291,14 +371,76 @@ class HSV(_CallableSingle):
         return manipulation.moving_stdev(image_cache.image, self.window, hsv=self._hsv_)
 
 
+class MixedHSV(_CallableSingle):
+    def __init__(self, h: int, s: int, v: int, /, h_=True, s_=True, v_=True, *_):
+        """allows `0 for int values, will use input values"""
+        self.method = 0
+        self.window = h, s, v
+        self.opt = None
+        self._func = manipulation.moving_stdev
+        self._hsv_ = (h_, s_, v_)
+
+    def apply(self, image_cache: ImageCache) -> numpy.ndarray:
+        return manipulation.multi_moving_stdev(
+            image_cache.image, self.window, hsv=self._hsv_
+        )
+
+
+class MixedBGR(_CallableSingle):
+    def __init__(self, b: int, g: int, r: int, /, b_=True, g_=True, r_=True, *_):
+        """allows `0 for int values, will use input values"""
+        self.method = 0
+        self.window = b, g, r
+        self.opt = None
+        self._func = manipulation.moving_stdev
+        self._bgr_ = (b_, g_, r_)
+
+    def apply(self, image_cache: ImageCache) -> numpy.ndarray:
+        return manipulation.multi_moving_stdev(
+            image_cache.image, self.window, bgr=self._bgr_
+        )
+
+
+class AsInput(_Callable):
+    def __init__(self, /, *_, **__):
+        pass
+
+    def apply(self, image_cache: ImageCache) -> numpy.ndarray:
+        return image_cache.image
+
+
 _OptionalReturns = typing.Union[
-    _Callable, Average, Distribute, Power, MaxContrast, RollContrast, Sharpen, HSV
+    _Callable,
+    Average,
+    Distribute,
+    Power,
+    MaxContrast,
+    RollContrast,
+    Sharpen,
+    MixedHSV,
+    MixedBGR,
+    InsertChannelHSV,
+    InsertChannelBGR,
+    HSV,
+    AsInput,
 ]
 
 DefinedTypes = typing.Union[
-    Average, Distribute, Power, MaxContrast, RollContrast, Sharpen, HSV, int
+    Average,
+    Distribute,
+    Power,
+    MaxContrast,
+    RollContrast,
+    Sharpen,
+    MixedHSV,
+    MixedBGR,
+    HSV,
+    InsertChannelHSV,
+    InsertChannelBGR,
+    AsInput,
+    int,
 ]
-
+_Opt_Type = typing.Optional[DefinedTypes]
 MethodsMulti = {"Average": Average, "Distribute": Distribute, "Power": Power}
 MethodsSingle = {
     "MaxContrast": MaxContrast,
